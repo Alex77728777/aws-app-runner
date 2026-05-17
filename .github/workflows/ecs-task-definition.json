@@ -1,0 +1,30 @@
+{
+  "family": "demo-ecs-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::577089532282:role/ecs_execution_role",
+  "taskRoleArn": "arn:aws:iam::577089532282:role/ecs_task_role",
+  "containerDefinitions": [
+    {
+      "name": "nginx",
+      "image": "nginxdemos/hello:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/demo-ecs",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

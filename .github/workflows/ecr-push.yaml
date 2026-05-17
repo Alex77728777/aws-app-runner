@@ -9,7 +9,10 @@ on:
 env:
   AWS_REGION: eu-north-1
   ECR_REPOSITORY: github-actions-oidc-test55 
-  IMAGE_TAG: latest
+  IMAGE_TAG: ${{ github.sha }}
+  ECS_CLUSTER: demo-ecs-cluster
+  ECS_SERVICE: demo-ecs-service
+  CONTAINER_NAME: nginx
 
 jobs:
   deploy:
@@ -55,3 +58,22 @@ jobs:
           aws ecr describe-images \
             --repository-name $ECR_REPOSITORY \
             --region $AWS_REGION
+
+      # 7. Render task definition (AWS OFFICIAL)
+      - name: Render ECS task definition
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ecs-task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+
+      # 8. Deploy to ECS (AWS OFFICIAL)
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
